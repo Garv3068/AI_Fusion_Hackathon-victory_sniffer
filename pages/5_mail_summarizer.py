@@ -1,27 +1,34 @@
 import streamlit as st
 import google.generativeai as genai
 
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="AI Mail Summarizer",
+    layout="wide"
+)
 
+# ---------------- GEMINI SETUP ----------------
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-def mail_summary():
-    st.header("📧 AI Mail Summarizer (Gemini)")
+# ---------------- UI ----------------
+st.title("📧 AI Mail Summarizer (Gemini)")
+st.caption("Paste any official college mail and get a clear, student-friendly summary.")
 
-    mail_text = st.text_area(
-        "Paste College Mail Here",
-        height=250,
-        placeholder="Paste official college mail / notice..."
-    )
+mail_text = st.text_area(
+    "Paste College Mail Here",
+    height=250,
+    placeholder="Paste official college mail / notice..."
+)
 
-    if st.button("Summarize Mail"):
-        if mail_text.strip() == "":
-            st.warning("Please paste a mail first.")
-            return
-
+if st.button("Summarize Mail"):
+    if not mail_text.strip():
+        st.warning("Please paste a mail first.")
+    else:
         with st.spinner("Summarizing using Gemini AI..."):
             prompt = f"""
 You are a college assistant AI.
+
 Summarize the following mail in simple student-friendly language.
 
 Return:
@@ -32,7 +39,6 @@ Return:
 Mail:
 {mail_text}
 """
-
             response = model.generate_content(prompt)
 
             st.subheader("📌 Summary")
