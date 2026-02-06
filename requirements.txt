@@ -2,3 +2,6 @@ streamlit
 pandas
 numpy
 datetime
+streamlit
+transformers
+torch
