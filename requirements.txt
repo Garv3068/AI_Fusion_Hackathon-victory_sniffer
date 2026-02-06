@@ -7,3 +7,9 @@ transformers
 torch
 streamlit
 google-generativeai
+streamlit
+pandas
+numpy
+haversine
+pydeck
+requests
