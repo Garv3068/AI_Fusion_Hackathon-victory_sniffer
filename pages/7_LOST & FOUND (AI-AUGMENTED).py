@@ -18,20 +18,15 @@ st.caption("Simple campus lost & found system with **simulated AI matching**")
 # =========================================================
 # In-memory storage (resets on refresh)
 # =========================================================
-if "items" not in st.session_state:
-    st.session_state.items = []
+if "lost_found_items" not in st.session_state:
+    st.session_state["lost_found_items"] = []
 
 # =========================================================
 # Simulated AI Logic
 # =========================================================
 
 def auto_tag(description: str):
-    """
-    SIMULATED AI TAGGING (Keyword-based)
-    -----------------------------------
-    This mimics an AI classifier by checking for
-    presence of certain keywords in the description.
-    """
+    """Simulated AI tagging using keywords"""
     desc = description.lower()
 
     if any(k in desc for k in ["phone", "laptop", "charger", "earbuds", "tablet"]):
@@ -44,27 +39,19 @@ def auto_tag(description: str):
 
 
 def text_similarity(a: str, b: str):
-    """
-    SIMULATED AI SIMILARITY CHECK
-    -----------------------------
-    Uses simple string similarity to mimic
-    NLP-based semantic matching.
-    """
+    """Simulated NLP similarity"""
     return SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
 
 def find_matches(current_item, threshold=0.6):
-    """
-    SIMULATED AI MATCHING
-    ---------------------
-    Compares LOST vs FOUND items using description similarity.
-    """
+    """Find LOST vs FOUND matches"""
     matches = []
 
-    for item in st.session_state.items:
+    for item in st.session_state["lost_found_items"]:
         if item["status"] != current_item["status"]:
             score = text_similarity(
-                current_item["description"], item["description"]
+                current_item["description"],
+                item["description"]
             )
             if score >= threshold:
                 matches.append((item, score))
@@ -89,18 +76,16 @@ with col1:
         submit_lost = st.form_submit_button("Submit Lost Item")
 
         if submit_lost and lost_name and lost_desc:
-            tag = auto_tag(lost_desc)
-
             new_item = {
                 "name": lost_name,
                 "description": lost_desc,
                 "location": lost_location,
                 "date": lost_date,
                 "status": "Lost",
-                "category": tag
+                "category": auto_tag(lost_desc)
             }
 
-            st.session_state.items.append(new_item)
+            st.session_state["lost_found_items"].append(new_item)
             st.success("Lost item submitted successfully!")
 
 with col2:
@@ -114,18 +99,16 @@ with col2:
         submit_found = st.form_submit_button("Submit Found Item")
 
         if submit_found and found_name and found_desc:
-            tag = auto_tag(found_desc)
-
             new_item = {
                 "name": found_name,
                 "description": found_desc,
                 "location": found_location,
                 "date": found_date,
                 "status": "Found",
-                "category": tag
+                "category": auto_tag(found_desc)
             }
 
-            st.session_state.items.append(new_item)
+            st.session_state["lost_found_items"].append(new_item)
             st.success("Found item submitted successfully!")
 
 # =========================================================
@@ -138,7 +121,7 @@ st.subheader("📋 All Submissions")
 search = st.text_input("🔍 Search by name, description, or location")
 
 filtered_items = []
-for item in st.session_state.items:
+for item in st.session_state["lost_found_items"]:
     combined = f"{item['name']} {item['description']} {item['location']}".lower()
     if search.lower() in combined:
         filtered_items.append(item)
@@ -150,7 +133,7 @@ for item in st.session_state.items:
 if not filtered_items:
     st.info("No items found.")
 else:
-    for idx, item in enumerate(filtered_items):
+    for item in filtered_items:
         with st.container():
             st.markdown(
                 f"""
@@ -166,7 +149,6 @@ else:
                 unsafe_allow_html=True
             )
 
-            # ---------------- AI MATCH SUGGESTIONS ----------------
             matches = find_matches(item)
 
             if matches:
@@ -176,4 +158,5 @@ else:
                         f"- **{m['name']}** ({m['status']}) — Similarity: `{score:.2f}`"
                     )
 
-            st.write("")  # spacing
+            st.write("")
+
